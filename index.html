@@ -1,0 +1,654 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TransLocNet | Aerial-Ground Vehicle Localization</title>
+  <meta name="description" content="TransLocNet: Cross-Modal Attention for Aerial-Ground Vehicle Localization with Contrastive Learning.">
+  <style>
+    :root {
+      --ink: #15142f;
+      --muted: #5c6077;
+      --soft: #f6f8fb;
+      --line: #dfe5ef;
+      --blue: #4f60f6;
+      --teal: #087f73;
+      --red: #b74f4b;
+      --gold: #b57718;
+      --navy: #102d4a;
+      --white: #fff;
+      --radius: 8px;
+      --max: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--white);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.58;
+    }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    img { display: block; max-width: 100%; }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      background: rgba(255, 255, 255, .92);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(12px);
+    }
+    .brand {
+      font-weight: 800;
+      letter-spacing: -.02em;
+      color: var(--ink);
+    }
+    .brand span { color: var(--teal); }
+    .nav ul {
+      display: flex;
+      gap: 22px;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+      font-size: 13px;
+      font-weight: 650;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    .nav a { color: var(--muted); }
+    .nav a:hover { color: var(--ink); text-decoration: none; }
+
+    .hero {
+      background:
+        radial-gradient(circle at 80% 12%, rgba(79, 96, 246, .14), transparent 28%),
+        radial-gradient(circle at 12% 90%, rgba(8, 127, 115, .14), transparent 28%),
+        var(--soft);
+      border-bottom: 1px solid var(--line);
+    }
+    .hero-inner {
+      width: min(var(--max), calc(100% - 40px));
+      margin: 0 auto;
+      padding: 76px 0 54px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(320px, .92fr);
+      gap: 42px;
+      align-items: center;
+    }
+    .kicker {
+      color: var(--teal);
+      font-size: 12px;
+      font-weight: 750;
+      text-transform: uppercase;
+      letter-spacing: .16em;
+      margin-bottom: 16px;
+    }
+    h1 {
+      margin: 0;
+      max-width: 790px;
+      color: var(--ink);
+      font-size: clamp(34px, 5vw, 58px);
+      line-height: 1.03;
+      letter-spacing: -.045em;
+    }
+    .subtitle {
+      margin: 22px 0 0;
+      max-width: 680px;
+      color: var(--muted);
+      font-size: 18px;
+    }
+    .authors {
+      margin: 22px 0 0;
+      color: var(--ink);
+      font-weight: 700;
+    }
+    .affiliations {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 28px;
+    }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 0 16px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--white);
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 760;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    .button.primary {
+      color: var(--white);
+      border-color: var(--navy);
+      background: var(--navy);
+    }
+    .button:hover { transform: translateY(-1px); text-decoration: none; }
+    .conference {
+      margin: 12px 0 0;
+      color: var(--teal);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+    }
+    .hero-figure {
+      padding: 18px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 24px 70px rgba(16, 45, 74, .12);
+    }
+    .hero-figure img {
+      width: 100%;
+      border-radius: 5px;
+      background: #f1f4f8;
+    }
+
+    section {
+      padding: 76px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    section:nth-of-type(odd) { background: var(--soft); }
+    .container {
+      width: min(var(--max), calc(100% - 40px));
+      margin: 0 auto;
+    }
+    .section-head {
+      max-width: 760px;
+      margin-bottom: 28px;
+    }
+    .eyebrow {
+      color: var(--teal);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    h2 {
+      margin: 0;
+      color: var(--ink);
+      font-size: clamp(28px, 3.5vw, 42px);
+      line-height: 1.1;
+      letter-spacing: -.035em;
+    }
+    .lead {
+      margin: 16px 0 0;
+      color: var(--muted);
+      font-size: 18px;
+    }
+    .grid {
+      display: grid;
+      gap: 18px;
+    }
+    .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .card {
+      min-width: 0;
+      padding: 22px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+    .card h3 {
+      margin: 0 0 8px;
+      color: var(--ink);
+      font-size: 17px;
+      line-height: 1.25;
+    }
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+    .metric {
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--white);
+    }
+    .metric strong {
+      display: block;
+      color: var(--teal);
+      font-size: clamp(28px, 4vw, 42px);
+      line-height: 1;
+      letter-spacing: -.04em;
+    }
+    .metric span {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .figure {
+      margin-top: 24px;
+      padding: 18px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+    .caption {
+      margin: 10px 4px 0;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .sample-block + .sample-block { margin-top: 38px; }
+    .sample-title {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 12px;
+    }
+    .sample-title h3 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 20px;
+    }
+    .sample-title span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .sample-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .sample-card {
+      overflow: hidden;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+    .sample-triplet {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--line);
+    }
+    .sample-triplet img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      background: #edf1f5;
+    }
+    .sample-card p {
+      margin: 0;
+      padding: 9px 10px;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--white);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: right;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+    th {
+      color: var(--muted);
+      background: #f9fbfd;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    td:first-child, th:first-child,
+    td:nth-child(2).left, th:nth-child(2).left { text-align: left; }
+    tr:last-child td { border-bottom: 0; }
+    .ours td {
+      color: var(--teal);
+      background: #eff8f6;
+      font-weight: 800;
+    }
+    .table-note {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .bibtex {
+      position: relative;
+      margin-top: 18px;
+      padding: 24px;
+      overflow-x: auto;
+      color: #dce6ef;
+      background: var(--navy);
+      border-radius: var(--radius);
+    }
+    pre {
+      margin: 0;
+      font: 13px/1.65 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: pre-wrap;
+    }
+    .copy {
+      position: absolute;
+      right: 14px;
+      top: 14px;
+      padding: 6px 10px;
+      color: var(--white);
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    footer {
+      padding: 34px 20px;
+      color: rgba(255,255,255,.7);
+      background: var(--navy);
+      text-align: center;
+      font-size: 13px;
+    }
+    footer a { color: var(--white); }
+
+    @media (max-width: 880px) {
+      .hero-inner { grid-template-columns: 1fr; padding-top: 56px; }
+      .grid.two, .grid.three, .grid.four { grid-template-columns: 1fr; }
+      .sample-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px) {
+      .nav { display: none; }
+      .hero-inner, .container { width: min(100% - 28px, var(--max)); }
+      section { padding: 54px 0; }
+      .sample-grid { grid-template-columns: 1fr; }
+      .sample-title { display: block; }
+      .sample-title span { display: block; margin-top: 4px; }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav" aria-label="Primary navigation">
+    <a class="brand" href="#">Trans<span>Loc</span>Net</a>
+    <ul>
+      <li><a href="#abstract">Abstract</a></li>
+      <li><a href="#method">Method</a></li>
+      <li><a href="#results">Results</a></li>
+      <li><a href="#citation">Citation</a></li>
+    </ul>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <div>
+        <h1>TransLocNet: Cross-Modal Attention for Aerial-Ground Vehicle Localization with Contrastive Learning</h1>
+        <p class="subtitle">A vehicle localization framework that aligns ground-level LiDAR geometry with overhead aerial context using bidirectional attention, likelihood maps, and contrastive learning.</p>
+        <p class="authors">Phu Pham<sup>1</sup>, Damon Conover<sup>2</sup>, Aniket Bera<sup>1</sup></p>
+        <p class="affiliations"><sup>1</sup> Purdue University &nbsp; <sup>2</sup> DEVCOM Army Research Laboratory</p>
+        <div class="actions">
+          <a class="button primary" href="https://arxiv.org/abs/2512.10419" target="_blank" rel="noopener">Paper</a>
+          <a class="button" href="https://arxiv.org/abs/2512.10419" target="_blank" rel="noopener">arXiv</a>
+          <a class="button" href="#citation">BibTeX</a>
+        </div>
+        <p class="conference">ICRA 2026</p>
+      </div>
+      <figure class="hero-figure">
+        <img src="final_materials/TransLocNet_ICRA26/images/teaser.png" alt="TransLocNet teaser showing aerial map, LiDAR BEV, pose optimization, and heatmap output.">
+      </figure>
+    </div>
+  </header>
+
+  <section id="abstract">
+    <div class="container">
+      <div class="section-head">
+        <div class="eyebrow">Abstract</div>
+        <h2>Using aerial imagery as a scalable global map for LiDAR localization</h2>
+        <p class="lead">TransLocNet addresses the viewpoint and modality gap between overhead imagery and ground vehicle LiDAR by learning cross-modal spatial correspondences.</p>
+      </div>
+      <div class="grid two">
+        <div class="card">
+          <h3>Problem</h3>
+          <p>GNSS can fail, SLAM can drift, and HD maps are expensive to maintain. Aerial imagery is broadly available, but matching it to local LiDAR observations is difficult.</p>
+        </div>
+        <div class="card">
+          <h3>Approach</h3>
+          <p>LiDAR is projected to BEV, encoded alongside aerial imagery, aligned using bidirectional cross-modal attention, and decoded into position and orientation likelihood maps.</p>
+        </div>
+      </div>
+      <div class="grid four" style="margin-top:18px">
+        <div class="metric"><strong>6.47 m</strong><span>KITTI satellite localization error</span></div>
+        <div class="metric"><strong>5.07 deg</strong><span>KITTI satellite orientation error</span></div>
+        <div class="metric"><strong>-63%</strong><span>localization error vs. AGL-Net on KITTI satellite</span></div>
+        <div class="metric"><strong>100%</strong><span>CARLA recall at 5 m for 256 x 256 maps</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="challenges">
+    <div class="container">
+      <div class="section-head">
+        <div class="eyebrow">Motivation</div>
+        <h2>Why aerial-ground localization is hard</h2>
+      </div>
+      <div class="grid four">
+        <div class="card"><h3>Viewpoint gap</h3><p>Aerial imagery is top-down, while LiDAR observes local 3D structure from ground level.</p></div>
+        <div class="card"><h3>Modality gap</h3><p>Aerial RGB carries semantic context; LiDAR BEV carries sparse geometric cues.</p></div>
+        <div class="card"><h3>Scale and rotation</h3><p>The search region can be large, and the vehicle heading may be misaligned.</p></div>
+        <div class="card"><h3>Real-world mismatch</h3><p>Aerial images and LiDAR scans may be captured at different times, especially in KITTI.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="method">
+    <div class="container">
+      <div class="section-head">
+        <div class="eyebrow">Method</div>
+        <h2>Cross-modal attention aligns aerial and BEV features</h2>
+        <p class="lead">The model uses separate encoders for each modality, a bidirectional attention module for alignment, and a likelihood decoder for uncertainty-aware pose estimation.</p>
+      </div>
+      <figure class="figure">
+        <img src="final_materials/TransLocNet_ICRA26/images/architecture.png" alt="TransLocNet architecture overview.">
+        <figcaption class="caption">Architecture overview: aerial and BEV encoders, cross-modal attention, contrastive learning, and likelihood-map decoding.</figcaption>
+      </figure>
+      <div class="grid four" style="margin-top:18px">
+        <div class="card"><h3>1. LiDAR to BEV</h3><p>Project local LiDAR into a bird's-eye-view image for comparison with overhead maps.</p></div>
+        <div class="card"><h3>2. Feature extraction</h3><p>Use ResNet-34 encoders with multi-scale refinement and Fourier BEV features.</p></div>
+        <div class="card"><h3>3. Attention fusion</h3><p>Aerial queries attend to BEV keys and values, and BEV queries attend back to aerial features.</p></div>
+        <div class="card"><h3>4. Likelihood output</h3><p>Predict location and heading probability maps, regularized by contrastive learning.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="results">
+    <div class="container">
+      <div class="section-head">
+        <div class="eyebrow">Results</div>
+        <h2>Qualitative examples and benchmark comparisons</h2>
+        <p class="lead">The heatmaps show where the model assigns high likelihood for vehicle pose. Quantitatively, TransLocNet improves both position and heading accuracy across CARLA and KITTI.</p>
+      </div>
+
+      <div class="sample-block">
+        <div class="sample-title">
+          <h3>CARLA dataset</h3>
+          <span>Aerial image · projected BEV · location heatmap</span>
+        </div>
+        <div class="sample-grid">
+          <article class="sample-card">
+            <div class="sample-triplet">
+              <img src="final_materials/TransLocNet_ICRA26/images/carla_samples/sample1_aerial.png" alt="CARLA sample 1 aerial image.">
+              <img src="final_materials/TransLocNet_ICRA26/images/carla_samples/sample1_bev.png" alt="CARLA sample 1 projected BEV.">
+              <img src="final_materials/TransLocNet_ICRA26/images/carla_samples/sample1_heatmap.png" alt="CARLA sample 1 location heatmap.">
+            </div>
+            <p>Sample 1</p>
+          </article>
+          <article class="sample-card">
+            <div class="sample-triplet">
+              <img src="final_materials/TransLocNet_ICRA26/images/carla_samples/sample2_aerial.png" alt="CARLA sample 2 aerial image.">
+              <img src="final_materials/TransLocNet_ICRA26/images/carla_samples/sample2_bev.png" alt="CARLA sample 2 projected BEV.">
+              <img src="final_materials/TransLocNet_ICRA26/images/carla_samples/sample2_heatmap.png" alt="CARLA sample 2 location heatmap.">
+            </div>
+            <p>Sample 2</p>
+          </article>
+          <article class="sample-card">
+            <div class="sample-triplet">
+              <img src="final_materials/TransLocNet_ICRA26/images/carla_samples/sample3_aerial.png" alt="CARLA sample 3 aerial image.">
+              <img src="final_materials/TransLocNet_ICRA26/images/carla_samples/sample3_bev.png" alt="CARLA sample 3 projected BEV.">
+              <img src="final_materials/TransLocNet_ICRA26/images/carla_samples/sample3_heatmap.png" alt="CARLA sample 3 location heatmap.">
+            </div>
+            <p>Sample 3</p>
+          </article>
+          <article class="sample-card">
+            <div class="sample-triplet">
+              <img src="final_materials/TransLocNet_ICRA26/images/carla_samples/sample4_aerial.png" alt="CARLA sample 4 aerial image.">
+              <img src="final_materials/TransLocNet_ICRA26/images/carla_samples/sample4_bev.png" alt="CARLA sample 4 projected BEV.">
+              <img src="final_materials/TransLocNet_ICRA26/images/carla_samples/sample4_heatmap.png" alt="CARLA sample 4 location heatmap.">
+            </div>
+            <p>Sample 4</p>
+          </article>
+        </div>
+      </div>
+
+      <div class="sample-block">
+        <div class="sample-title">
+          <h3>KITTI dataset</h3>
+          <span>Real-world aerial imagery and LiDAR</span>
+        </div>
+        <div class="sample-grid">
+          <article class="sample-card">
+            <div class="sample-triplet">
+              <img src="final_materials/TransLocNet_ICRA26/images/kitti_samples/sample1_aerial.png" alt="KITTI sample 1 aerial image.">
+              <img src="final_materials/TransLocNet_ICRA26/images/kitti_samples/sample1_bev.png" alt="KITTI sample 1 projected BEV.">
+              <img src="final_materials/TransLocNet_ICRA26/images/kitti_samples/sample1_heatmap.png" alt="KITTI sample 1 location heatmap.">
+            </div>
+            <p>Sample 1</p>
+          </article>
+          <article class="sample-card">
+            <div class="sample-triplet">
+              <img src="final_materials/TransLocNet_ICRA26/images/kitti_samples/sample2_aerial.png" alt="KITTI sample 2 aerial image.">
+              <img src="final_materials/TransLocNet_ICRA26/images/kitti_samples/sample2_bev.png" alt="KITTI sample 2 projected BEV.">
+              <img src="final_materials/TransLocNet_ICRA26/images/kitti_samples/sample2_heatmap.png" alt="KITTI sample 2 location heatmap.">
+            </div>
+            <p>Sample 2</p>
+          </article>
+          <article class="sample-card">
+            <div class="sample-triplet">
+              <img src="final_materials/TransLocNet_ICRA26/images/kitti_samples/sample3_aerial.png" alt="KITTI sample 3 aerial image.">
+              <img src="final_materials/TransLocNet_ICRA26/images/kitti_samples/sample3_bev.png" alt="KITTI sample 3 projected BEV.">
+              <img src="final_materials/TransLocNet_ICRA26/images/kitti_samples/sample3_heatmap.png" alt="KITTI sample 3 location heatmap.">
+            </div>
+            <p>Sample 3</p>
+          </article>
+          <article class="sample-card">
+            <div class="sample-triplet">
+              <img src="final_materials/TransLocNet_ICRA26/images/kitti_samples/sample4_aerial.png" alt="KITTI sample 4 aerial image.">
+              <img src="final_materials/TransLocNet_ICRA26/images/kitti_samples/sample4_bev.png" alt="KITTI sample 4 projected BEV.">
+              <img src="final_materials/TransLocNet_ICRA26/images/kitti_samples/sample4_heatmap.png" alt="KITTI sample 4 location heatmap.">
+            </div>
+            <p>Sample 4</p>
+          </article>
+        </div>
+      </div>
+
+      <div class="grid two" style="margin-top:38px">
+        <div>
+          <h3>CARLA benchmark</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Method</th><th>Map</th><th>Loc. err</th><th>Ori. err</th><th>Lat. R@5m</th><th>Ori. R@5deg</th></tr></thead>
+              <tbody>
+                <tr><td>OrienterNet</td><td>256</td><td>2.23</td><td>19.15</td><td>98.61</td><td>66.26</td></tr>
+                <tr><td>AGL-Net</td><td>256</td><td>1.83</td><td>3.76</td><td>100.0</td><td>74.42</td></tr>
+                <tr class="ours"><td>TransLocNet</td><td>256</td><td>1.57</td><td>3.22</td><td>100.0</td><td>78.95</td></tr>
+                <tr><td>OrienterNet</td><td>1024</td><td>18.75</td><td>82.71</td><td>56.55</td><td>32.51</td></tr>
+                <tr><td>AGL-Net</td><td>1024</td><td>14.96</td><td>57.25</td><td>69.49</td><td>46.22</td></tr>
+                <tr class="ours"><td>TransLocNet</td><td>1024</td><td>5.75</td><td>10.93</td><td>87.38</td><td>66.87</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="table-note">Errors are average localization in meters and orientation in degrees.</p>
+        </div>
+
+        <div>
+          <h3>KITTI benchmark</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Map</th><th class="left">Method</th><th>Loc.</th><th>Ori.</th><th>Lat. R@5m</th><th>Long. R@5m</th></tr></thead>
+              <tbody>
+                <tr><td>OSM</td><td class="left">OrienterNet</td><td>28.01</td><td>8.30</td><td>15.37</td><td>18.48</td></tr>
+                <tr><td>OSM</td><td class="left">AGL-Net</td><td>18.02</td><td>8.59</td><td>31.17</td><td>24.54</td></tr>
+                <tr class="ours"><td>OSM</td><td class="left">TransLocNet</td><td>15.32</td><td>9.21</td><td>34.76</td><td>29.12</td></tr>
+                <tr><td>Sat.</td><td class="left">OrienterNet</td><td>27.75</td><td>8.65</td><td>16.89</td><td>19.62</td></tr>
+                <tr><td>Sat.</td><td class="left">AGL-Net</td><td>17.32</td><td>9.76</td><td>29.54</td><td>27.54</td></tr>
+                <tr class="ours"><td>Sat.</td><td class="left">TransLocNet</td><td>6.47</td><td>5.07</td><td>78.79</td><td>75.28</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="table-note">Satellite-map TransLocNet reduces localization error by 63% versus AGL-Net.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="citation">
+    <div class="container">
+      <div class="section-head">
+        <div class="eyebrow">Citation</div>
+        <h2>BibTeX</h2>
+        <p class="lead">If you use this work, please cite the paper.</p>
+      </div>
+      <div class="bibtex">
+        <button class="copy" type="button" onclick="copyBib()">Copy</button>
+        <pre id="bib">@inproceedings{pham2026translocnet,
+  title     = {TransLocNet: Cross-Modal Attention for Aerial-Ground Vehicle Localization with Contrastive Learning},
+  author    = {Pham, Phu and Conover, Damon and Bera, Aniket},
+  booktitle = {2026 IEEE International Conference on Robotics and Automation (ICRA)},
+  year      = {2026}
+}</pre>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <strong>TransLocNet</strong><br>
+    Purdue University · DEVCOM Army Research Laboratory · ICRA 2026
+  </footer>
+
+  <script>
+    function copyBib() {
+      const text = document.getElementById('bib').innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector('.copy');
+        btn.textContent = 'Copied';
+        setTimeout(() => btn.textContent = 'Copy', 1400);
+      });
+    }
+  </script>
+</body>
+</html>
